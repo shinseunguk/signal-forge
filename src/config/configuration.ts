@@ -1,0 +1,19 @@
+/**
+ * 애플리케이션 설정을 네임스페이스로 구조화한다.
+ * 원시 환경변수는 ConfigService 로도 접근 가능하지만,
+ * 도메인 값은 아래 구조를 통해 접근하는 것을 권장한다.
+ */
+export default () => ({
+  port: parseInt(process.env.PORT ?? '3000', 10),
+  database: {
+    url: process.env.DATABASE_URL ?? '',
+  },
+  portfolio: {
+    initialCash: Number(process.env.PORTFOLIO_INITIAL_CASH ?? 100_000_000),
+    name: process.env.PORTFOLIO_NAME ?? 'signal-forge-main',
+  },
+  risk: {
+    dailyLossLimitPct: Number(process.env.DAILY_LOSS_LIMIT_PCT ?? 3),
+    maxPositionWeightPct: Number(process.env.MAX_POSITION_WEIGHT_PCT ?? 20),
+  },
+});

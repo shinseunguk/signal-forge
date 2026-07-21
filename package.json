@@ -6,8 +6,12 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && tsc -p tsconfig.scripts.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "migrate": "ts-node --project tsconfig.scripts.json scripts/migrate.ts",
+    "migrate:prod": "node dist/scripts/migrate.js",
+    "seed": "ts-node --project tsconfig.scripts.json scripts/seed.ts",
+    "seed:prod": "node dist/scripts/seed.js",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -21,8 +25,11 @@
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "dotenv": "^17.4.2",
+    "pg": "^8.22.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -35,6 +42,7 @@
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
+    "@types/pg": "^8.20.0",
     "@types/supertest": "^7.0.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
