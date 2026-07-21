@@ -8,6 +8,10 @@ export default () => ({
   database: {
     url: process.env.DATABASE_URL ?? '',
   },
+  market: {
+    // 시세 제공자 선택: 'mock'(기본) | 'toss'(실 API, 스펙 확정 후)
+    provider: process.env.MARKET_PROVIDER ?? 'mock',
+  },
   portfolio: {
     initialCash: Number(process.env.PORTFOLIO_INITIAL_CASH ?? 100_000_000),
     name: process.env.PORTFOLIO_NAME ?? 'signal-forge-main',

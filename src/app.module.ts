@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import configuration from './config/configuration';
 import { validateEnv } from './config/env.validation';
 import { DatabaseModule } from './database/database.module';
+import { MarketModule } from './market/market.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { DatabaseModule } from './database/database.module';
       validate: validateEnv,
     }),
     DatabaseModule,
+    MarketModule,
   ],
   controllers: [AppController],
   providers: [AppService],
