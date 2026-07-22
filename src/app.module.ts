@@ -13,6 +13,7 @@ import { RiskModule } from './risk/risk.module';
 import { SignalsModule } from './signals/signals.module';
 import { StrategyModule } from './strategy/strategy.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
+import { PerformanceModule } from './performance/performance.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
     RiskModule,
     SignalsModule,
     StrategyModule,
+    PerformanceModule,
     SchedulerModule,
   ],
   controllers: [AppController],

@@ -3,6 +3,7 @@ import { DatabaseService } from '../database/database.service';
 import { PortfolioService } from '../portfolio/portfolio.service';
 import { SignalsService } from '../signals/signals.service';
 import { StrategyRunnerService } from '../strategy/strategy-runner.service';
+import { PerformanceService } from '../performance/performance.service';
 import { SchedulerService } from './scheduler.service';
 import { SlackNotifier } from './slack-notifier.service';
 
@@ -10,6 +11,7 @@ describe('SchedulerService', () => {
   let signals: { ingestAndTag: jest.Mock };
   let strategyRunner: { run: jest.Mock };
   let portfolio: { snapshot: jest.Mock };
+  let performance: { evaluateSignals: jest.Mock };
   let db: { query: jest.Mock };
   let slack: { notifyFailure: jest.Mock };
   let config: { get: jest.Mock };
@@ -19,6 +21,7 @@ describe('SchedulerService', () => {
     signals = { ingestAndTag: jest.fn().mockResolvedValue({}) };
     strategyRunner = { run: jest.fn().mockResolvedValue([]) };
     portfolio = { snapshot: jest.fn().mockResolvedValue(undefined) };
+    performance = { evaluateSignals: jest.fn().mockResolvedValue(undefined) };
     db = {
       query: jest.fn().mockResolvedValue({ rows: [{ id: '1' }, { id: '2' }] }),
     };
@@ -28,6 +31,7 @@ describe('SchedulerService', () => {
       signals as unknown as SignalsService,
       strategyRunner as unknown as StrategyRunnerService,
       portfolio as unknown as PortfolioService,
+      performance as unknown as PerformanceService,
       db as unknown as DatabaseService,
       slack as unknown as SlackNotifier,
       config as unknown as ConfigService,
