@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import configuration from './config/configuration';
 import { validateEnv } from './config/env.validation';
 import { DatabaseModule } from './database/database.module';
+import { NotificationModule } from './notification/notification.module';
 import { MarketModule } from './market/market.module';
 import { PortfolioModule } from './portfolio/portfolio.module';
 import { ExecutionModule } from './execution/execution.module';
@@ -24,6 +25,7 @@ import { PerformanceModule } from './performance/performance.module';
     }),
     ScheduleModule.forRoot(),
     DatabaseModule,
+    NotificationModule,
     MarketModule,
     PortfolioModule,
     ExecutionModule,

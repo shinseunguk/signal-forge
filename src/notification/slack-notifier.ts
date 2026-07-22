@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Notifier } from './notifier.interface';
 
 /**
- * Slack Incoming Webhook 알림. SLACK_WEBHOOK_URL 미설정 시 로그만 남긴다.
- * 알림 실패가 잡 자체를 실패시키지 않도록 내부에서 예외를 흡수한다.
+ * Slack Incoming Webhook 알림 (선택지). SLACK_WEBHOOK_URL 미설정 시 로그만 남긴다.
  */
 @Injectable()
-export class SlackNotifier {
+export class SlackNotifier implements Notifier {
+  readonly channel = 'slack';
   private readonly logger = new Logger(SlackNotifier.name);
   private readonly webhookUrl?: string;
 
@@ -16,8 +17,7 @@ export class SlackNotifier {
 
   async notifyFailure(job: string, error: unknown): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
-    const text = `:rotating_light: [signal-forge] 스케줄 잡 실패: *${job}*\n${message}`;
-    await this.send(text);
+    await this.send(`:rotating_light: [signal-forge] 스케줄 잡 실패: *${job}*\n${message}`);
   }
 
   async send(text: string): Promise<void> {
