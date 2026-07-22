@@ -9,6 +9,7 @@ import { MarketModule } from './market/market.module';
 import { PortfolioModule } from './portfolio/portfolio.module';
 import { ExecutionModule } from './execution/execution.module';
 import { RiskModule } from './risk/risk.module';
+import { SignalsModule } from './signals/signals.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { RiskModule } from './risk/risk.module';
     PortfolioModule,
     ExecutionModule,
     RiskModule,
+    SignalsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
