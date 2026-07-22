@@ -6,6 +6,7 @@ import configuration from './config/configuration';
 import { validateEnv } from './config/env.validation';
 import { DatabaseModule } from './database/database.module';
 import { MarketModule } from './market/market.module';
+import { PortfolioModule } from './portfolio/portfolio.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { MarketModule } from './market/market.module';
     }),
     DatabaseModule,
     MarketModule,
+    PortfolioModule,
   ],
   controllers: [AppController],
   providers: [AppService],
