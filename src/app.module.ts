@@ -7,6 +7,7 @@ import { validateEnv } from './config/env.validation';
 import { DatabaseModule } from './database/database.module';
 import { MarketModule } from './market/market.module';
 import { PortfolioModule } from './portfolio/portfolio.module';
+import { ExecutionModule } from './execution/execution.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PortfolioModule } from './portfolio/portfolio.module';
     DatabaseModule,
     MarketModule,
     PortfolioModule,
+    ExecutionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
