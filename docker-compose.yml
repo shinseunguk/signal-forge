@@ -28,6 +28,9 @@ services:
       PORTFOLIO_NAME: signal-forge-main
       DAILY_LOSS_LIMIT_PCT: 3
       MAX_POSITION_WEIGHT_PCT: 20
+      # 휴장일 캘린더: .env 에서 주입(미설정 시 mock 폴백).
+      CALENDAR_PROVIDER: ${CALENDAR_PROVIDER:-mock}
+      FINNHUB_API_KEY: ${FINNHUB_API_KEY:-}
     ports:
       - "3000:3000"
     # 부팅 시 마이그레이션 → 시드 → 앱 실행 순으로 수행.

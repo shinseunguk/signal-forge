@@ -3,6 +3,7 @@ import { PortfolioModule } from '../portfolio/portfolio.module';
 import { SignalsModule } from '../signals/signals.module';
 import { StrategyModule } from '../strategy/strategy.module';
 import { PerformanceModule } from '../performance/performance.module';
+import { CalendarModule } from '../calendar/calendar.module';
 import { SchedulerService } from './scheduler.service';
 import { DailyReportService } from './daily-report.service';
 
@@ -11,7 +12,13 @@ import { DailyReportService } from './daily-report.service';
  * 알림(NOTIFIER)은 전역 NotificationModule 에서 제공. ScheduleModule.forRoot 는 AppModule.
  */
 @Module({
-  imports: [SignalsModule, StrategyModule, PortfolioModule, PerformanceModule],
+  imports: [
+    SignalsModule,
+    StrategyModule,
+    PortfolioModule,
+    PerformanceModule,
+    CalendarModule,
+  ],
   providers: [SchedulerService, DailyReportService],
   exports: [SchedulerService, DailyReportService],
 })

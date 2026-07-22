@@ -6,6 +6,7 @@ import { PortfolioService } from '../portfolio/portfolio.service';
 import { SignalsService } from '../signals/signals.service';
 import { StrategyRunnerService } from '../strategy/strategy-runner.service';
 import { PerformanceService } from '../performance/performance.service';
+import { CalendarSyncService } from '../calendar/calendar-sync.service';
 import { NOTIFIER } from '../notification/notifier.interface';
 import type { Notifier } from '../notification/notifier.interface';
 import { DailyReportService } from './daily-report.service';
@@ -28,6 +29,7 @@ export class SchedulerService {
     private readonly portfolio: PortfolioService,
     private readonly performance: PerformanceService,
     private readonly dailyReport: DailyReportService,
+    private readonly calendarSync: CalendarSyncService,
     private readonly db: DatabaseService,
     @Inject(NOTIFIER) private readonly notifier: Notifier,
     private readonly config: ConfigService,
@@ -76,6 +78,14 @@ export class SchedulerService {
   dailyDigest(): Promise<void> {
     return this.wrap('daily-digest', async () => {
       await this.dailyReport.sendDailyDigest();
+    });
+  }
+
+  /** 휴장일 캘린더 동기화 (매주 일요일 새벽). provider 에서 받아 market_calendar 갱신. */
+  @Cron('0 3 * * 0', { name: 'sync-calendar', timeZone: TZ })
+  syncCalendar(): Promise<void> {
+    return this.wrap('sync-calendar', async () => {
+      await this.calendarSync.sync();
     });
   }
 

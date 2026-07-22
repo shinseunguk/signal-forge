@@ -16,6 +16,13 @@ export default () => ({
     // 환율 제공자: 'mock'(기본) | 'exchangerate'(실 API, 확정 후)
     provider: process.env.FX_PROVIDER ?? 'mock',
   },
+  calendar: {
+    // 휴장일 제공자: 'mock'(기본, 평일 규칙) | 'finnhub'(실 API, 공휴일 반영)
+    provider: process.env.CALENDAR_PROVIDER ?? 'mock',
+    // finnhub provider 사용 시 필요. 없으면 mock 으로 폴백한다.
+    finnhubApiKey: process.env.FINNHUB_API_KEY ?? '',
+    finnhubBaseUrl: process.env.FINNHUB_API_BASE ?? 'https://finnhub.io/api/v1',
+  },
   signals: {
     // LLM 태거 선택: 'mock'(기본) | 'claude'(실 API, 키·프롬프트 확정 후)
     tagger: process.env.SIGNAL_TAGGER ?? 'mock',

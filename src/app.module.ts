@@ -16,6 +16,7 @@ import { StrategyModule } from './strategy/strategy.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { PerformanceModule } from './performance/performance.module';
 import { FxModule } from './fx/fx.module';
+import { CalendarModule } from './calendar/calendar.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { FxModule } from './fx/fx.module';
     DatabaseModule,
     NotificationModule,
     FxModule,
+    CalendarModule,
     MarketModule,
     PortfolioModule,
     ExecutionModule,
