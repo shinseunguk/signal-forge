@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import configuration from './config/configuration';
@@ -11,6 +12,7 @@ import { ExecutionModule } from './execution/execution.module';
 import { RiskModule } from './risk/risk.module';
 import { SignalsModule } from './signals/signals.module';
 import { StrategyModule } from './strategy/strategy.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
 
 @Module({
   imports: [
@@ -19,6 +21,7 @@ import { StrategyModule } from './strategy/strategy.module';
       load: [configuration],
       validate: validateEnv,
     }),
+    ScheduleModule.forRoot(),
     DatabaseModule,
     MarketModule,
     PortfolioModule,
@@ -26,6 +29,7 @@ import { StrategyModule } from './strategy/strategy.module';
     RiskModule,
     SignalsModule,
     StrategyModule,
+    SchedulerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
