@@ -15,6 +15,9 @@ interface PortfolioRow {
   base_currency: string;
   initial_cash: string;
   cash_balance: string;
+  funded_amount: string | null;
+  funded_currency: string | null;
+  initial_fx_rate: string | null;
 }
 
 interface PositionRow {
@@ -121,6 +124,10 @@ export class PortfolioService {
       baseCurrency: row.base_currency,
       initialCash: toNumber(row.initial_cash),
       cashBalance: toNumber(row.cash_balance),
+      fundedAmount: row.funded_amount == null ? null : toNumber(row.funded_amount),
+      fundedCurrency: row.funded_currency,
+      initialFxRate:
+        row.initial_fx_rate == null ? null : toNumber(row.initial_fx_rate),
     };
   }
 

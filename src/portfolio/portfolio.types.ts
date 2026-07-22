@@ -7,6 +7,10 @@ export interface Portfolio {
   baseCurrency: string;
   initialCash: number;
   cashBalance: number;
+  /** 펀딩 원 통화 금액 (예: 100,000,000 KRW). USD 계좌의 KRW 환산·환차익 리포트에 사용. */
+  fundedAmount: number | null;
+  fundedCurrency: string | null;
+  initialFxRate: number | null;
 }
 
 /** 보유 포지션. */

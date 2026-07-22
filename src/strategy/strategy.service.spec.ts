@@ -31,31 +31,31 @@ describe('StrategyService.evaluate', () => {
   });
 
   it('악재 종목은 BUY 대신 HOLD(신규 매수 금지)', async () => {
-    badNews([{ symbol: '005930', market: 'KRX', id: '99' }]);
+    badNews([{ symbol: 'AAPL', market: 'US', id: '99' }]);
     portfolio.getPositions.mockResolvedValue([]);
     const actions = await service.evaluate(1);
-    const s = actions.find((a) => a.symbol === '005930');
+    const s = actions.find((a) => a.symbol === 'AAPL');
     expect(s?.action).toBe('HOLD');
     expect(s?.signalId).toBe(99);
     // 다른 관심 종목은 여전히 BUY
-    expect(actions.find((a) => a.symbol === '000660')?.action).toBe('BUY');
+    expect(actions.find((a) => a.symbol === 'MSFT')?.action).toBe('BUY');
   });
 
   it('악재 종목을 보유 중이면 SELL 후보', async () => {
-    badNews([{ symbol: '005930', market: 'KRX', id: '77' }]);
+    badNews([{ symbol: 'AAPL', market: 'US', id: '77' }]);
     portfolio.getPositions.mockResolvedValue([
       {
         id: 1,
         portfolioId: 1,
-        symbol: '005930',
-        market: 'KRX',
+        symbol: 'AAPL',
+        market: 'US',
         quantity: 10,
-        avgPrice: 70000,
+        avgPrice: 250,
       },
     ]);
     const actions = await service.evaluate(1);
     const sell = actions.find((a) => a.action === 'SELL');
-    expect(sell?.symbol).toBe('005930');
+    expect(sell?.symbol).toBe('AAPL');
     expect(sell?.quantity).toBe(10);
     expect(sell?.signalId).toBe(77);
   });

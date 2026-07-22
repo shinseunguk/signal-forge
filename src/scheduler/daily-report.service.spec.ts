@@ -21,6 +21,7 @@ describe('DailyReportService', () => {
     performance = {
       portfolioReport: jest.fn().mockResolvedValue({
         portfolioId: 1,
+        baseCurrency: 'KRW',
         initialCash: 100_000_000,
         currentValue: 100_712_000,
         returnPct: 0.712,
@@ -31,6 +32,7 @@ describe('DailyReportService', () => {
         sellCount: 1,
         dailyWinRate: 50,
         snapshotCount: 3,
+        fx: null,
       }),
       tradingJournal: jest.fn().mockResolvedValue([
         {
