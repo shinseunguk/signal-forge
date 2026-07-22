@@ -12,6 +12,10 @@ export default () => ({
     // 시세 제공자 선택: 'mock'(기본) | 'toss'(실 API, 스펙 확정 후)
     provider: process.env.MARKET_PROVIDER ?? 'mock',
   },
+  signals: {
+    // LLM 태거 선택: 'mock'(기본) | 'claude'(실 API, 키·프롬프트 확정 후)
+    tagger: process.env.SIGNAL_TAGGER ?? 'mock',
+  },
   portfolio: {
     initialCash: Number(process.env.PORTFOLIO_INITIAL_CASH ?? 100_000_000),
     name: process.env.PORTFOLIO_NAME ?? 'signal-forge-main',
