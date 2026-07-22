@@ -5,6 +5,7 @@ import { DatabaseService } from '../database/database.service';
 import { PortfolioService } from '../portfolio/portfolio.service';
 import { SignalsService } from '../signals/signals.service';
 import { StrategyRunnerService } from '../strategy/strategy-runner.service';
+import { PerformanceService } from '../performance/performance.service';
 import { SlackNotifier } from './slack-notifier.service';
 
 const TZ = 'Asia/Seoul';
@@ -21,6 +22,7 @@ export class SchedulerService {
     private readonly signals: SignalsService,
     private readonly strategyRunner: StrategyRunnerService,
     private readonly portfolio: PortfolioService,
+    private readonly performance: PerformanceService,
     private readonly db: DatabaseService,
     private readonly slack: SlackNotifier,
     private readonly config: ConfigService,
@@ -56,12 +58,11 @@ export class SchedulerService {
     });
   }
 
-  /** 시그널 성과 평가 (매일 새벽). Phase 9 에서 PerformanceService 연결 예정. */
+  /** 시그널 성과 평가 (매일 새벽). horizon 1/5/20일 후 실제 수익률 계산. */
   @Cron('0 6 * * *', { name: 'evaluate-signals', timeZone: TZ })
   evaluateSignals(): Promise<void> {
     return this.wrap('evaluate-signals', async () => {
-      // TODO(Phase 9): await this.performance.evaluateSignals([1, 5, 20]);
-      this.logger.log('evaluate-signals: Phase 9 PerformanceService 연결 대기');
+      await this.performance.evaluateSignals([1, 5, 20]);
     });
   }
 

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { PortfolioModule } from '../portfolio/portfolio.module';
 import { SignalsModule } from '../signals/signals.module';
 import { StrategyModule } from '../strategy/strategy.module';
+import { PerformanceModule } from '../performance/performance.module';
 import { SchedulerService } from './scheduler.service';
 import { SlackNotifier } from './slack-notifier.service';
 
@@ -10,7 +11,7 @@ import { SlackNotifier } from './slack-notifier.service';
  * (ScheduleModule.forRoot 는 AppModule 에서 전역 등록)
  */
 @Module({
-  imports: [SignalsModule, StrategyModule, PortfolioModule],
+  imports: [SignalsModule, StrategyModule, PortfolioModule, PerformanceModule],
   providers: [SchedulerService, SlackNotifier],
   exports: [SchedulerService, SlackNotifier],
 })
