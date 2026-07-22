@@ -102,14 +102,14 @@ export class StrategyRunnerService {
     action: StrategyAction,
     at: Date,
   ): Promise<RunOutcome> {
-    // 매도(방어)도 휴장일에는 실행하지 않는다.
-    const open = await this.risk.isMarketOpen(action.market, at);
-    if (!open) {
+    // 매도(방어)도 휴장·비허용 세션에는 실행하지 않는다.
+    const tradeable = await this.risk.isTradeable(action.market, at);
+    if (!tradeable.allowed) {
       return {
         action: 'SELL',
         symbol: action.symbol,
         status: 'skipped',
-        reason: `${action.market} 휴장일 → 매도 보류`,
+        reason: `${tradeable.reason} → 매도 보류`,
       };
     }
 

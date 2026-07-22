@@ -6,7 +6,7 @@ import { StrategyAction } from './strategy.types';
 
 describe('StrategyRunnerService.run', () => {
   let strategy: { evaluate: jest.Mock };
-  let risk: { checkBuy: jest.Mock; isMarketOpen: jest.Mock };
+  let risk: { checkBuy: jest.Mock; isTradeable: jest.Mock };
   let execution: { paperBuy: jest.Mock; paperSell: jest.Mock };
   let runner: StrategyRunnerService;
 
@@ -14,7 +14,10 @@ describe('StrategyRunnerService.run', () => {
 
   beforeEach(() => {
     strategy = { evaluate: jest.fn() };
-    risk = { checkBuy: jest.fn(), isMarketOpen: jest.fn().mockResolvedValue(true) };
+    risk = {
+      checkBuy: jest.fn(),
+      isTradeable: jest.fn().mockResolvedValue({ allowed: true }),
+    };
     execution = {
       paperBuy: jest.fn().mockResolvedValue({ id: 100 }),
       paperSell: jest.fn().mockResolvedValue({ id: 200 }),
@@ -67,10 +70,14 @@ describe('StrategyRunnerService.run', () => {
     );
   });
 
-  it('SELL 액션은 휴장일에 보류', async () => {
-    risk.isMarketOpen.mockResolvedValue(false);
+  it('SELL 액션은 휴장·비허용 세션에 보류', async () => {
+    risk.isTradeable.mockResolvedValue({
+      allowed: false,
+      gate: 'market_session',
+      reason: 'US AFTER 세션',
+    });
     strategy.evaluate.mockResolvedValue([
-      { action: 'SELL', symbol: '005930', market: 'KRX', quantity: 10, reason: '악재 청산' },
+      { action: 'SELL', symbol: 'AAPL', market: 'US', quantity: 10, reason: '악재 청산' },
     ]);
     const outcomes = await runner.run(1, at);
     expect(outcomes[0].status).toBe('skipped');

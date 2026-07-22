@@ -4,7 +4,11 @@ import { Market } from '../market/market.types';
 export interface RiskDecision {
   allowed: boolean;
   /** 거부된 게이트 식별자 (allowed=false 일 때). */
-  gate?: 'market_closed' | 'daily_loss_limit' | 'position_weight';
+  gate?:
+    | 'market_closed'
+    | 'market_session'
+    | 'daily_loss_limit'
+    | 'position_weight';
   reason?: string;
 }
 

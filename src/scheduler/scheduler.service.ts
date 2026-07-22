@@ -10,7 +10,9 @@ import { NOTIFIER } from '../notification/notifier.interface';
 import type { Notifier } from '../notification/notifier.interface';
 import { DailyReportService } from './daily-report.service';
 
-const TZ = 'Asia/Seoul';
+// 미국 주식 계좌 기준. cron 은 거래소 타임존(ET)으로 정렬 → 서머타임 자동 반영.
+// 실제 매매 세션(본장) 제한은 RiskGate 세션 게이트가 강제한다.
+const TZ = 'America/New_York';
 
 /**
  * 스케줄 잡 (기획서 §7). 모든 잡은 실패 시 Slack 으로 알린다.
@@ -31,15 +33,15 @@ export class SchedulerService {
     private readonly config: ConfigService,
   ) {}
 
-  /** 뉴스/공시 수집 + LLM 태깅 (장중, 평일 5분). */
-  @Cron('*/5 9-15 * * 1-5', { name: 'collect-signals', timeZone: TZ })
+  /** 뉴스/공시 수집 + LLM 태깅 (ET 프리~애프터, 평일 5분). */
+  @Cron('*/5 4-20 * * 1-5', { name: 'collect-signals', timeZone: TZ })
   collectSignals(): Promise<void> {
     return this.wrap('collect-signals', async () => {
       await this.signals.ingestAndTag();
     });
   }
 
-  /** 전략 평가 → 페이퍼 주문 (장중, 평일 10분). */
+  /** 전략 평가 → 페이퍼 주문 (ET 본장 시간대, 평일 10분). 세션 게이트가 본장만 허용. */
   @Cron('*/10 9-15 * * 1-5', { name: 'run-strategy', timeZone: TZ })
   runStrategy(): Promise<void> {
     return this.wrap('run-strategy', async () => {
@@ -50,8 +52,8 @@ export class SchedulerService {
     });
   }
 
-  /** 일일 NAV 스냅샷 (국내장 마감 후). */
-  @Cron('40 15 * * 1-5', { name: 'nav-snapshot', timeZone: TZ })
+  /** 일일 NAV 스냅샷 (ET 본장 마감 후). */
+  @Cron('5 16 * * 1-5', { name: 'nav-snapshot', timeZone: TZ })
   navSnapshot(): Promise<void> {
     return this.wrap('nav-snapshot', async () => {
       const ids = await this.getPortfolioIds();
@@ -69,8 +71,8 @@ export class SchedulerService {
     });
   }
 
-  /** 일일 다이제스트 알림 (평일 마감 후). 수익률·수익금액·매매일지·예측력. */
-  @Cron('50 15 * * 1-5', { name: 'daily-digest', timeZone: TZ })
+  /** 일일 다이제스트 알림 (ET 본장 마감 후). 수익률·수익금액·매매일지·예측력. */
+  @Cron('30 16 * * 1-5', { name: 'daily-digest', timeZone: TZ })
   dailyDigest(): Promise<void> {
     return this.wrap('daily-digest', async () => {
       await this.dailyReport.sendDailyDigest();
