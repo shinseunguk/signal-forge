@@ -26,3 +26,17 @@ export interface SignalEfficacyReport {
   byCategory: EfficacyBucket[];
   bySentiment: EfficacyBucket[];
 }
+
+/** 매매일지 한 줄. */
+export interface JournalEntry {
+  side: 'BUY' | 'SELL';
+  symbol: string;
+  market: string;
+  quantity: number;
+  fillPrice: number;
+  fee: number;
+  tax: number;
+  netCashFlow: number;
+  decidedAt: Date;
+  note: string | null;
+}

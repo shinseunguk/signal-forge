@@ -5,15 +5,17 @@ import { SignalsService } from '../signals/signals.service';
 import { StrategyRunnerService } from '../strategy/strategy-runner.service';
 import { PerformanceService } from '../performance/performance.service';
 import { SchedulerService } from './scheduler.service';
-import { SlackNotifier } from './slack-notifier.service';
+import { DailyReportService } from './daily-report.service';
+import { Notifier } from '../notification/notifier.interface';
 
 describe('SchedulerService', () => {
   let signals: { ingestAndTag: jest.Mock };
   let strategyRunner: { run: jest.Mock };
   let portfolio: { snapshot: jest.Mock };
   let performance: { evaluateSignals: jest.Mock };
+  let dailyReport: { sendDailyDigest: jest.Mock };
   let db: { query: jest.Mock };
-  let slack: { notifyFailure: jest.Mock };
+  let notifier: { notifyFailure: jest.Mock; send: jest.Mock; channel: string };
   let config: { get: jest.Mock };
   let service: SchedulerService;
 
@@ -22,18 +24,24 @@ describe('SchedulerService', () => {
     strategyRunner = { run: jest.fn().mockResolvedValue([]) };
     portfolio = { snapshot: jest.fn().mockResolvedValue(undefined) };
     performance = { evaluateSignals: jest.fn().mockResolvedValue(undefined) };
+    dailyReport = { sendDailyDigest: jest.fn().mockResolvedValue(undefined) };
     db = {
       query: jest.fn().mockResolvedValue({ rows: [{ id: '1' }, { id: '2' }] }),
     };
-    slack = { notifyFailure: jest.fn().mockResolvedValue(undefined) };
+    notifier = {
+      notifyFailure: jest.fn().mockResolvedValue(undefined),
+      send: jest.fn().mockResolvedValue(undefined),
+      channel: 'discord',
+    };
     config = { get: jest.fn().mockReturnValue(true) };
     service = new SchedulerService(
       signals as unknown as SignalsService,
       strategyRunner as unknown as StrategyRunnerService,
       portfolio as unknown as PortfolioService,
       performance as unknown as PerformanceService,
+      dailyReport as unknown as DailyReportService,
       db as unknown as DatabaseService,
-      slack as unknown as SlackNotifier,
+      notifier as unknown as Notifier,
       config as unknown as ConfigService,
     );
   });
@@ -55,13 +63,18 @@ describe('SchedulerService', () => {
     expect(portfolio.snapshot).toHaveBeenCalledTimes(2);
   });
 
-  it('잡 실패 시 Slack 알림을 보낸다', async () => {
+  it('잡 실패 시 알림을 보낸다', async () => {
     signals.ingestAndTag.mockRejectedValue(new Error('boom'));
     await service.collectSignals();
-    expect(slack.notifyFailure).toHaveBeenCalledWith(
+    expect(notifier.notifyFailure).toHaveBeenCalledWith(
       'collect-signals',
       expect.any(Error),
     );
+  });
+
+  it('dailyDigest 는 일일 다이제스트를 전송한다', async () => {
+    await service.dailyDigest();
+    expect(dailyReport.sendDailyDigest).toHaveBeenCalledTimes(1);
   });
 
   it('SCHEDULER_ENABLED=false 면 잡 본문을 건너뛴다', async () => {

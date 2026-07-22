@@ -5,6 +5,7 @@ import { Market } from '../market/market.types';
 import { PortfolioService } from '../portfolio/portfolio.service';
 import {
   EfficacyBucket,
+  JournalEntry,
   PortfolioReport,
   SignalEfficacyReport,
 } from './performance.types';
@@ -105,6 +106,49 @@ export class PerformanceService {
       }
       this.logger.log(`evaluateSignals horizon=${horizon}: ${rows.length}건 평가`);
     }
+  }
+
+  /** 해당 일자의 매매일지(페이퍼 주문 목록). date 미지정 시 오늘. */
+  async tradingJournal(
+    portfolioId: number,
+    date: Date = new Date(),
+  ): Promise<JournalEntry[]> {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start.getTime() + MS_PER_DAY);
+
+    const { rows } = await this.db.query<{
+      side: string;
+      symbol: string;
+      market: string;
+      quantity: string;
+      fill_price: string;
+      fee: string;
+      tax: string;
+      net_cash_flow: string;
+      decided_at: Date;
+      note: string | null;
+    }>(
+      `SELECT side, symbol, market, quantity, fill_price, fee, tax,
+              net_cash_flow, decided_at, note
+       FROM paper_order
+       WHERE portfolio_id = $1 AND decided_at >= $2 AND decided_at < $3
+       ORDER BY decided_at`,
+      [portfolioId, start, end],
+    );
+
+    return rows.map((r) => ({
+      side: r.side as JournalEntry['side'],
+      symbol: r.symbol,
+      market: r.market,
+      quantity: toNumber(r.quantity),
+      fillPrice: toNumber(r.fill_price),
+      fee: toNumber(r.fee),
+      tax: toNumber(r.tax),
+      netCashFlow: toNumber(r.net_cash_flow),
+      decidedAt: r.decided_at,
+      note: r.note,
+    }));
   }
 
   async signalEfficacyReport(): Promise<SignalEfficacyReport> {

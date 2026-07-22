@@ -20,6 +20,10 @@ export default () => ({
     // false 면 cron 잡 본문을 건너뛴다.
     enabled: (process.env.SCHEDULER_ENABLED ?? 'true') !== 'false',
   },
+  notification: {
+    // 알림 채널: 'discord'(기본) | 'slack'
+    channel: process.env.NOTIFIER ?? 'discord',
+  },
   portfolio: {
     initialCash: Number(process.env.PORTFOLIO_INITIAL_CASH ?? 100_000_000),
     name: process.env.PORTFOLIO_NAME ?? 'signal-forge-main',

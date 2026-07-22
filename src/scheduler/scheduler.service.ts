@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import { DatabaseService } from '../database/database.service';
@@ -6,7 +6,9 @@ import { PortfolioService } from '../portfolio/portfolio.service';
 import { SignalsService } from '../signals/signals.service';
 import { StrategyRunnerService } from '../strategy/strategy-runner.service';
 import { PerformanceService } from '../performance/performance.service';
-import { SlackNotifier } from './slack-notifier.service';
+import { NOTIFIER } from '../notification/notifier.interface';
+import type { Notifier } from '../notification/notifier.interface';
+import { DailyReportService } from './daily-report.service';
 
 const TZ = 'Asia/Seoul';
 
@@ -23,8 +25,9 @@ export class SchedulerService {
     private readonly strategyRunner: StrategyRunnerService,
     private readonly portfolio: PortfolioService,
     private readonly performance: PerformanceService,
+    private readonly dailyReport: DailyReportService,
     private readonly db: DatabaseService,
-    private readonly slack: SlackNotifier,
+    @Inject(NOTIFIER) private readonly notifier: Notifier,
     private readonly config: ConfigService,
   ) {}
 
@@ -66,6 +69,14 @@ export class SchedulerService {
     });
   }
 
+  /** 일일 다이제스트 알림 (평일 마감 후). 수익률·수익금액·매매일지·예측력. */
+  @Cron('50 15 * * 1-5', { name: 'daily-digest', timeZone: TZ })
+  dailyDigest(): Promise<void> {
+    return this.wrap('daily-digest', async () => {
+      await this.dailyReport.sendDailyDigest();
+    });
+  }
+
   private async wrap(job: string, fn: () => Promise<void>): Promise<void> {
     if (!this.isEnabled()) {
       this.logger.debug(`scheduler disabled → skip ${job}`);
@@ -77,7 +88,7 @@ export class SchedulerService {
       this.logger.log(`job ${job} done (${Date.now() - startedAt}ms)`);
     } catch (error) {
       this.logger.error(`job ${job} failed: ${error}`);
-      await this.slack.notifyFailure(job, error);
+      await this.notifier.notifyFailure(job, error);
     }
   }
 
