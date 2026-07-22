@@ -10,7 +10,7 @@ function doc(hash: string, symbol?: string): RawDoc {
     externalRef: `ref-${hash}`,
     rawText: `text-${hash}`,
     symbol,
-    market: symbol ? 'KRX' : undefined,
+    market: symbol ? 'US' : undefined,
     publishedAt: new Date('2026-07-20T00:00:00Z'),
     rawHash: hash,
   };
@@ -35,7 +35,7 @@ describe('SignalsService', () => {
 
   it('이미 저장된 raw_hash 는 태깅하지 않고, 신규만 태깅한다', async () => {
     ingestion.collectAll.mockResolvedValue([
-      doc('h1', '005930'),
+      doc('h1', 'AAPL'),
       doc('h2', 'AAPL'),
       doc('h3'), // 종목 없음 → 태깅 시 스킵
     ]);

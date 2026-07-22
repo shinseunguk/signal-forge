@@ -8,13 +8,11 @@ import { Market } from '../market/market.types';
 
 /** 매매 수수료율. */
 export const FEES: Record<Market, { commission: number }> = {
-  KRX: { commission: 0.00015 }, // 0.015%
   US: { commission: 0.001 }, // 0.1%
 };
 
 /** 매도 시 추가 세금(증권거래세 등). ⚠️ 세율은 매년 변동 — 확인 후 설정. */
 export const SELL_TAX: Record<Market, number> = {
-  KRX: 0.0015, // placeholder
   US: 0,
 };
 

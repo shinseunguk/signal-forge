@@ -37,8 +37,8 @@ describe('DailyReportService', () => {
       tradingJournal: jest.fn().mockResolvedValue([
         {
           side: 'BUY',
-          symbol: '005930',
-          market: 'KRX',
+          symbol: 'AAPL',
+          market: 'US',
           quantity: 6,
           fillPrice: 150_291,
           fee: 225,
@@ -75,7 +75,7 @@ describe('DailyReportService', () => {
     expect(text).toContain('총평가액');
     expect(text).toContain('+712,000원'); // 수익금액
     expect(text).toContain('+0.712%'); // 수익률
-    expect(text).toContain('매수 005930 6주'); // 매매일지
+    expect(text).toContain('매수 AAPL 6주'); // 매매일지
     expect(text).toContain('EARNINGS'); // 예측력
   });
 

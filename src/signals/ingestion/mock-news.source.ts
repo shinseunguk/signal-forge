@@ -23,7 +23,7 @@ export class MockNewsSource implements DocumentSource {
       externalRef: 'https://news.example.com/market-overview',
       // symbol 없음 → 종목 특정 불가 → 태깅 단계에서 스킵되어야 함
       rawText:
-        '오늘 코스피는 보합권에서 마감했다. 외국인은 순매도, 기관은 순매수.',
+        'US stocks closed mixed as investors weighed the latest inflation data.',
     },
   ];
 

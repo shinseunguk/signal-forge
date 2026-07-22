@@ -1,5 +1,5 @@
 -- 001_init.sql — signal-forge 초기 스키마 (기획서 docs/PLAN.md §4)
--- 금액은 정밀도를 위해 NUMERIC 사용. symbol: KRX 6자리 코드(005930), US 티커(AAPL).
+-- 금액은 정밀도를 위해 NUMERIC 사용. symbol: US 티커(AAPL). 미국 전용 시스템.
 
 -- pgvector(vector) 확장은 임베딩 검색용 선택 항목이다.
 -- 확장이 설치 가능한 환경(예: Docker의 pgvector/pgvector 이미지)에서만 활성화한다.
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS position (
     id              BIGSERIAL PRIMARY KEY,
     portfolio_id    BIGINT NOT NULL REFERENCES portfolio(id),
     symbol          TEXT NOT NULL,
-    market          TEXT NOT NULL,               -- 'KRX' | 'US'
+    market          TEXT NOT NULL,               -- 'US'
     quantity        NUMERIC(20,6) NOT NULL DEFAULT 0,  -- 미국 소수점 대응
     avg_price       NUMERIC(20,4) NOT NULL DEFAULT 0,  -- 평균 매입가
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS position (
 -- paper_order 가 signal 을 참조하므로 signal 을 먼저 생성한다.
 CREATE TABLE IF NOT EXISTS signal (
     id              BIGSERIAL PRIMARY KEY,
-    source          TEXT NOT NULL,               -- 'DART' | 'NEWS' | ...
+    source          TEXT NOT NULL,               -- 'SEC' | 'NEWS' | ...
     external_ref    TEXT,                        -- 원문 URL/공시번호
     raw_hash        TEXT UNIQUE,                 -- 원문 해시 (중복 수집 방지)
     symbol          TEXT NOT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS paper_order (
     tax             NUMERIC(20,4) NOT NULL DEFAULT 0,  -- 매도세(SELL만)
     net_cash_flow   NUMERIC(20,4) NOT NULL,      -- 현금 변동 (BUY: 음수, SELL: 양수)
     signal_id       BIGINT REFERENCES signal(id),      -- 이 주문을 유발한 시그널 (nullable)
-    idempotency_key TEXT UNIQUE,                 -- 중복 주문 방지 (예: buy-005930-20260721)
+    idempotency_key TEXT UNIQUE,                 -- 중복 주문 방지 (예: buy-AAPL-20260721)
     note            TEXT,
     decided_at      TIMESTAMPTZ NOT NULL,        -- 전략이 결정 내린 시각
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()

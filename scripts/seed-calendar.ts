@@ -8,11 +8,11 @@ import { Client } from 'pg';
  *
  * 환경변수: CALENDAR_FROM / CALENDAR_TO (YYYY-MM-DD). 기본 2026 한 해.
  */
-const MARKETS = ['KRX', 'US'] as const;
+const MARKETS = ['US'] as const;
 
 // ⚠️ 공휴일 목록은 정본이 아니며 매년 갱신해야 한다. 필요 시 여기에 'YYYY-MM-DD' 추가.
+// 운영 환경에서는 CalendarSyncService(Finnhub)가 부팅 시 실 공휴일로 덮어쓴다.
 const HOLIDAYS: Record<(typeof MARKETS)[number], string[]> = {
-  KRX: [],
   US: [],
 };
 

@@ -105,7 +105,7 @@ LLM이 뉴스·공시를 구조화 시그널로 태깅하고, 그 시그널의 *
 ## 4. 데이터베이스 스키마
 
 > Phase 1에서 이 DDL을 `migrations/001_init.sql`로 그대로 생성하세요.
-> 금액은 정밀도 문제로 `NUMERIC` 사용. `symbol`은 KRX는 6자리 코드(`005930`), 미국은 티커(`AAPL`).
+> 금액은 정밀도 문제로 `NUMERIC` 사용. `symbol`은 미국 티커(`AAPL`) — 미국 전용.
 
 ```sql
 -- 확장 (임베딩 검색용, 선택)
@@ -127,7 +127,7 @@ CREATE TABLE position (
     id              BIGSERIAL PRIMARY KEY,
     portfolio_id    BIGINT NOT NULL REFERENCES portfolio(id),
     symbol          TEXT NOT NULL,
-    market          TEXT NOT NULL,               -- 'KRX' | 'US'
+    market          TEXT NOT NULL,               -- 'US'
     quantity        NUMERIC(20,6) NOT NULL DEFAULT 0,  -- 미국 소수점 대응
     avg_price       NUMERIC(20,4) NOT NULL DEFAULT 0,  -- 평균 매입가
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -150,7 +150,7 @@ CREATE TABLE paper_order (
     tax             NUMERIC(20,4) NOT NULL DEFAULT 0,  -- 매도세(SELL만)
     net_cash_flow   NUMERIC(20,4) NOT NULL,      -- 현금 변동 (BUY: 음수, SELL: 양수)
     signal_id       BIGINT REFERENCES signal(id),-- 이 주문을 유발한 시그널 (nullable)
-    idempotency_key TEXT UNIQUE,                 -- 중복 주문 방지 (예: buy-005930-20260721)
+    idempotency_key TEXT UNIQUE,                 -- 중복 주문 방지 (예: buy-AAPL-20260721)
     note            TEXT,
     decided_at      TIMESTAMPTZ NOT NULL,        -- 전략이 결정 내린 시각
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -170,7 +170,7 @@ CREATE INDEX idx_price_symbol_time ON price_snapshot(symbol, captured_at DESC);
 -- 4.5 시그널 (LLM이 태깅한 구조화 데이터)
 CREATE TABLE signal (
     id              BIGSERIAL PRIMARY KEY,
-    source          TEXT NOT NULL,               -- 'DART' | 'NEWS' | ...
+    source          TEXT NOT NULL,               -- 'SEC' | 'NEWS' | ...
     external_ref    TEXT,                        -- 원문 URL/공시번호
     raw_hash        TEXT UNIQUE,                 -- 원문 해시 (중복 수집 방지)
     symbol          TEXT NOT NULL,
@@ -233,17 +233,17 @@ CREATE TABLE market_calendar (
 
 ```typescript
 // market/toss-quote.service.ts
-interface Quote { symbol: string; market: 'KRX' | 'US'; price: number; capturedAt: Date; }
+interface Quote { symbol: string; market: 'US'; price: number; capturedAt: Date; }
 
 class TossQuoteService {
   // OAuth 2.0 Client Credentials로 액세스 토큰 발급 + 캐싱(만료 전 재사용)
   private getAccessToken(): Promise<string>;
 
   // GET /api/v1/prices — 현재가 조회 (토큰만 필요, 읽기 전용)
-  getPrice(symbol: string, market: 'KRX' | 'US'): Promise<Quote>;
+  getPrice(symbol: string, market: 'US'): Promise<Quote>;
 
   // GET /api/v1/candles — 캔들 조회 (성과 평가용 과거 가격)
-  getCandles(symbol: string, market: 'KRX' | 'US', from: Date, to: Date): Promise<Candle[]>;
+  getCandles(symbol: string, market: 'US', from: Date, to: Date): Promise<Candle[]>;
 
   // 조회할 때마다 price_snapshot 테이블에 기록
 }
@@ -282,14 +282,14 @@ class PaperExecutionService {
   //  - idempotencyKey 중복 시 무시 (같은 날 중복 주문 방지)
   //  - 전 과정을 단일 DB 트랜잭션으로
   paperBuy(input: {
-    portfolioId: number; symbol: string; market: 'KRX' | 'US';
+    portfolioId: number; symbol: string; market: 'US';
     quantity?: number; orderAmount?: number;  // 둘 중 하나 (orderAmount는 금액 기반)
     signalId?: number; idempotencyKey: string; decidedAt: Date; note?: string;
   }): Promise<PaperOrder>;
 
   // 페이퍼 매도: 보유 수량 확인 → 슬리피지 → 수수료+세금 → 현금 증가 → 포지션 감소
   paperSell(input: {
-    portfolioId: number; symbol: string; market: 'KRX' | 'US';
+    portfolioId: number; symbol: string; market: 'US';
     quantity: number; signalId?: number; idempotencyKey: string; decidedAt: Date; note?: string;
   }): Promise<PaperOrder>;
 }
@@ -299,7 +299,7 @@ class PaperExecutionService {
 
 ```typescript
 class IngestionService {
-  // DART 공시 / 뉴스 수집 → raw_hash로 중복 제거 → 원문 저장
+  // SEC 공시 / 뉴스 수집 → raw_hash로 중복 제거 → 원문 저장
   collectDart(): Promise<RawDoc[]>;   // 공시 API
   collectNews(): Promise<RawDoc[]>;   // 뉴스 소스
 }
@@ -308,7 +308,7 @@ class TaggingService {
   // 원문 → LLM(temperature=0, 고정 프롬프트) → 구조화 시그널
   //  출력 스키마를 JSON으로 강제, 파싱 실패 시 재시도/스킵
   tag(doc: RawDoc): Promise<{
-    symbol: string; market: 'KRX'|'US';
+    symbol: string; market: 'US';
     sentimentScore: number;   // -1 ~ 1
     eventCategory: string;    // EARNINGS | REGULATION | MnA | GUIDANCE | LAWSUIT | OTHER
     confidence: number;       // 0 ~ 1
@@ -332,7 +332,7 @@ class StrategyService {
   // 현재 시그널 + 시세 + 포트폴리오 상태를 받아 액션 목록 산출
   evaluate(portfolioId: number): Promise<Array<{
     action: 'BUY' | 'SELL' | 'HOLD';
-    symbol: string; market: 'KRX'|'US';
+    symbol: string; market: 'US';
     quantity?: number; orderAmount?: number;
     reason: string; signalId?: number;
   }>>;
@@ -378,11 +378,10 @@ class PerformanceService {
 ```typescript
 // config로 분리. 실제 요율은 최신값 확인 후 확정할 것.
 const FEES = {
-  KRX: { commission: 0.00015 },   // 매매수수료 0.015% (KRX 체결 기준)
-  US:  { commission: 0.001 },     // 0.1%, 체결금액 $10 이하는 무료 처리
+    US:  { commission: 0.001 },     // 0.1%, 체결금액 $10 이하는 무료 처리
 };
 // 매도 시 추가 세금 (⚠️ 증권거래세율은 매년 변동 — 현재 세율 반드시 확인 후 설정)
-const SELL_TAX = { KRX: 0.0015 /* placeholder */, US: 0 };
+const SELL_TAX = { US: 0 };
 // 슬리피지 시뮬레이션: 시장가 체결가에 방향성 슬리피지 적용
 const SLIPPAGE = 0.001;  // 0.1% (BUY는 +, SELL은 -)
 ```
@@ -428,7 +427,6 @@ TOSS_APP_SECRET=...
 TOSS_API_BASE=https://openapi.tossinvest.com
 LLM_API_KEY=...
 LLM_MODEL=...
-DART_API_KEY=...
 SLACK_WEBHOOK_URL=...
 PORTFOLIO_INITIAL_CASH=100000000
 DAILY_LOSS_LIMIT_PCT=3
@@ -446,7 +444,7 @@ MAX_POSITION_WEIGHT_PCT=20
 - [ ] **Phase 3 — 포트폴리오**: `PortfolioService.valuate` / `snapshot` / `getPositions`.
 - [ ] **Phase 4 — 페이퍼 실행**: `PaperExecutionService.paperBuy` / `paperSell`. 마찰비용(§6.2) + 트랜잭션 + 멱등성. 단위 테스트로 현금/포지션 정합성 검증.
 - [ ] **Phase 5 — 리스크 게이트**: §6.3 전부. 휴장일 캘린더 시드.
-- [ ] **Phase 6 — 시그널**: `IngestionService`(DART/뉴스) + `TaggingService`(LLM 태깅, JSON 강제, temperature=0). 중복 제거.
+- [ ] **Phase 6 — 시그널**: `IngestionService`(SEC/뉴스) + `TaggingService`(LLM 태깅, JSON 강제, temperature=0). 중복 제거.
 - [ ] **Phase 7 — 전략**: `StrategyService.evaluate` v1 규칙(악재 필터 + 단순 적립). 리스크 게이트 연동.
 - [ ] **Phase 8 — 스케줄러**: §7 cron 4종 + Slack 알림.
 - [ ] **Phase 9 — 성과 분석 ★**: `PerformanceService`. NAV 추이, 시그널 예측력(`signal_outcome`), 카테고리별 효능 리포트.

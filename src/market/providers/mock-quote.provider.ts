@@ -66,13 +66,10 @@ export class MockQuoteProvider implements QuoteProvider {
     return this.round(base * (1 + drift));
   }
 
-  /** 심볼 고유의 기준가. KRX 는 원, US 는 달러 스케일. */
-  private basePrice(symbol: string, market: Market): number {
+  /** 심볼 고유의 기준가(USD 스케일). */
+  private basePrice(symbol: string, _market: Market): number {
     const h = this.hash(symbol);
-    if (market === 'US') {
-      return 20 + (h % 480); // 20 ~ 499 USD
-    }
-    return 10_000 + (h % 290_000); // 10,000 ~ 299,999 KRW
+    return 20 + (h % 480); // 20 ~ 499 USD
   }
 
   /** -1.0 ~ 1.0 범위의 결정론적 값. */

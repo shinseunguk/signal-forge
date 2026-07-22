@@ -18,10 +18,10 @@ describe('CalendarSyncService', () => {
     const service = new CalendarSyncService(provider, db);
     const result = await service.sync(new Date(2026, 5, 15));
 
-    // 2개 시장(US, KRX) × 2세션 = 4회 upsert.
-    expect(provider.getSessions).toHaveBeenCalledTimes(2);
-    expect(db.query).toHaveBeenCalledTimes(4);
-    expect(result.upserted).toBe(4);
+    // 1개 시장(US) × 2세션 = 2회 upsert.
+    expect(provider.getSessions).toHaveBeenCalledTimes(1);
+    expect(db.query).toHaveBeenCalledTimes(2);
+    expect(result.upserted).toBe(2);
 
     // upsert 쿼리에 ON CONFLICT 갱신이 포함돼야 한다.
     const [sql, params] = (db.query as jest.Mock).mock.calls[0];

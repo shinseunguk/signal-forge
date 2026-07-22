@@ -9,11 +9,11 @@ describe('TaggingService', () => {
   let service: TaggingService;
 
   const doc: RawDoc = {
-    source: 'DART',
-    externalRef: 'DART-1',
-    rawText: '삼성전자 실적 공시',
-    symbol: '005930',
-    market: 'KRX',
+    source: 'SEC',
+    externalRef: 'SEC-1',
+    rawText: 'Apple earnings report',
+    symbol: 'AAPL',
+    market: 'US',
     publishedAt: new Date('2026-07-20T00:00:00Z'),
     rawHash: 'hash-1',
   };
@@ -36,8 +36,8 @@ describe('TaggingService', () => {
 
   it('태깅 결과를 published_at 기준으로 signal 에 저장한다', async () => {
     tagger.tag.mockResolvedValue({
-      symbol: '005930',
-      market: 'KRX',
+      symbol: 'AAPL',
+      market: 'US',
       sentimentScore: 0.42,
       eventCategory: 'EARNINGS',
       confidence: 0.8,
@@ -56,8 +56,8 @@ describe('TaggingService', () => {
 
   it('중복 raw_hash(저장 0행)면 null 을 반환한다', async () => {
     tagger.tag.mockResolvedValue({
-      symbol: '005930',
-      market: 'KRX',
+      symbol: 'AAPL',
+      market: 'US',
       sentimentScore: 0.1,
       eventCategory: 'OTHER',
       confidence: 0.6,
@@ -70,8 +70,8 @@ describe('TaggingService', () => {
 
   it('범위를 벗어난 sentiment/confidence 는 clamp 된다', async () => {
     tagger.tag.mockResolvedValue({
-      symbol: '005930',
-      market: 'KRX',
+      symbol: 'AAPL',
+      market: 'US',
       sentimentScore: 2.5, // → 1
       eventCategory: 'OTHER',
       confidence: 1.9, // → 1

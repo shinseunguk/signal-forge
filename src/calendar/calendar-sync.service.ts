@@ -10,7 +10,7 @@ import { CALENDAR_PROVIDER } from './calendar-provider.interface';
 import type { CalendarProvider } from './calendar-provider.interface';
 
 /** 캘린더를 채울 대상 거래소. */
-const MARKETS: Market[] = ['US', 'KRX'];
+const MARKETS: Market[] = ['US'];
 
 export interface SyncResult {
   upserted: number;

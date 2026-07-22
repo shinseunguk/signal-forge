@@ -1,5 +1,5 @@
-/** 거래소 구분. KRX(국내), US(미국). */
-export type Market = 'KRX' | 'US';
+/** 거래소 구분. 미국 전용 시스템이므로 US 만 지원한다. */
+export type Market = 'US';
 
 /** 현재가 스냅샷. */
 export interface Quote {

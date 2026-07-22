@@ -132,7 +132,7 @@ export class StrategyRunnerService {
     };
   }
 
-  /** 같은 날 중복 주문 방지용 멱등 키. 예: buy-005930-20260722 */
+  /** 같은 날 중복 주문 방지용 멱등 키. 예: buy-AAPL-20260722 */
   private idempotencyKey(side: string, symbol: string, at: Date): string {
     const y = at.getFullYear();
     const m = String(at.getMonth() + 1).padStart(2, '0');

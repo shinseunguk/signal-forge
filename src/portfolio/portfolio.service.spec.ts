@@ -36,8 +36,8 @@ describe('PortfolioService', () => {
         {
           id: '10',
           portfolio_id: '1',
-          symbol: '005930',
-          market: 'KRX',
+          symbol: 'AAPL',
+          market: 'US',
           quantity: '10.000000',
           avg_price: '70000.0000',
         },
@@ -48,8 +48,8 @@ describe('PortfolioService', () => {
     expect(positions[0]).toEqual({
       id: 10,
       portfolioId: 1,
-      symbol: '005930',
-      market: 'KRX',
+      symbol: 'AAPL',
+      market: 'US',
       quantity: 10,
       avgPrice: 70000,
     });
@@ -64,8 +64,8 @@ describe('PortfolioService', () => {
           {
             id: '10',
             portfolio_id: '1',
-            symbol: '005930',
-            market: 'KRX',
+            symbol: 'AAPL',
+            market: 'US',
             quantity: '10.000000',
             avg_price: '70000.0000',
           },
@@ -73,8 +73,8 @@ describe('PortfolioService', () => {
         rowCount: 1,
       });
     market.getPrice.mockResolvedValue({
-      symbol: '005930',
-      market: 'KRX',
+      symbol: 'AAPL',
+      market: 'US',
       price: 71_200,
       capturedAt: new Date(),
     });
@@ -94,8 +94,8 @@ describe('PortfolioService', () => {
           {
             id: '11',
             portfolio_id: '1',
-            symbol: '000660',
-            market: 'KRX',
+            symbol: 'MSFT',
+            market: 'US',
             quantity: '0.000000',
             avg_price: '0.0000',
           },

@@ -187,16 +187,14 @@ export class PaperExecutionService {
     fillPrice: number,
     commission: number,
   ): number {
+    // 미국 주식은 소수점 체결(fractional share)을 허용한다.
     if (input.quantity != null) {
-      return input.market === 'KRX'
-        ? Math.floor(input.quantity)
-        : round6(input.quantity);
+      return round6(input.quantity);
     }
     // 금액 기반: 예산은 수수료를 포함한 총 현금 지출 한도.
     const budget = input.orderAmount as number;
     const unitCost = fillPrice * (1 + commission);
-    const rawQty = budget / unitCost;
-    return input.market === 'KRX' ? Math.floor(rawQty) : round6(rawQty);
+    return round6(budget / unitCost);
   }
 
   private async lockCashBalance(

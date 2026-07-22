@@ -31,14 +31,3 @@ describe('MarketSessionService (US)', () => {
     expect(svc.getSession('US', new Date('2026-07-19T14:00:00Z'))).toBe('CLOSED');
   });
 });
-
-describe('MarketSessionService (KRX)', () => {
-  const svc = new MarketSessionService();
-  // 2026-07-22 수요일. 09:00 KST = 00:00 UTC, 15:30 KST = 06:30 UTC.
-  it('01:00Z(10:00 KST)는 본장', () => {
-    expect(svc.getSession('KRX', new Date('2026-07-22T01:00:00Z'))).toBe('REGULAR');
-  });
-  it('07:00Z(16:00 KST)는 CLOSED', () => {
-    expect(svc.getSession('KRX', new Date('2026-07-22T07:00:00Z'))).toBe('CLOSED');
-  });
-});

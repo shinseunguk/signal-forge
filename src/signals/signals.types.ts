@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { Market } from '../market/market.types';
 
-export type SignalSource = 'DART' | 'NEWS';
+export type SignalSource = 'SEC' | 'NEWS';
 
 export type EventCategory =
   | 'EARNINGS'

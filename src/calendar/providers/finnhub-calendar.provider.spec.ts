@@ -47,22 +47,6 @@ describe('FinnhubCalendarProvider', () => {
     expect(partial[0].isOpen).toBe(true);
   });
 
-  it('US 외 시장은 API 호출 없이 평일 규칙으로 대체한다', async () => {
-    const fetchMock = jest.fn();
-    global.fetch = fetchMock as unknown as typeof fetch;
-
-    const provider = makeProvider('key-123');
-    const sessions = await provider.getSessions(
-      'KRX',
-      new Date(2026, 6, 24), // 금
-      new Date(2026, 6, 25), // 토
-    );
-
-    expect(fetchMock).not.toHaveBeenCalled();
-    expect(sessions[0].isOpen).toBe(true); // 금
-    expect(sessions[1].isOpen).toBe(false); // 토
-  });
-
   it('API 키가 없으면 에러를 던진다', async () => {
     const provider = makeProvider(undefined);
     await expect(
