@@ -22,16 +22,16 @@ export interface StrategyConfig {
 
 /**
  * v1 규칙 파라미터.
- * ⚠️ 관심 종목은 KRX(원화)만 둔다. US 종목은 환율 변환(orderAmount KRW ↔ USD 시세)이
- *    필요하므로 후속 과제로 남긴다.
+ * USD 네이티브 계좌 — 미국 종목만 매매하며 buyOrderAmount 는 USD 단위이다.
  */
 export const STRATEGY_V1: StrategyConfig = {
   version: 'v1',
   watchlist: [
-    { symbol: '005930', market: 'KRX' }, // 삼성전자
-    { symbol: '000660', market: 'KRX' }, // SK하이닉스
+    { symbol: 'AAPL', market: 'US' },
+    { symbol: 'MSFT', market: 'US' },
+    { symbol: 'NVDA', market: 'US' },
   ],
-  buyOrderAmount: 1_000_000,
+  buyOrderAmount: 1_000, // USD
   badNews: {
     windowHours: 24,
     sentimentMax: -0.5,

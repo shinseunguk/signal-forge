@@ -3,8 +3,11 @@ import { DatabaseService } from '../database/database.service';
 import { MarketService } from '../market/market.service';
 import { Market } from '../market/market.types';
 import { PortfolioService } from '../portfolio/portfolio.service';
+import { Portfolio } from '../portfolio/portfolio.types';
+import { FxService } from '../fx/fx.service';
 import {
   EfficacyBucket,
+  FxReport,
   JournalEntry,
   PortfolioReport,
   SignalEfficacyReport,
@@ -29,6 +32,7 @@ export class PerformanceService {
     private readonly db: DatabaseService,
     private readonly portfolio: PortfolioService,
     private readonly market: MarketService,
+    private readonly fx: FxService,
   ) {}
 
   async portfolioReport(portfolioId: number): Promise<PortfolioReport> {
@@ -57,8 +61,11 @@ export class PerformanceService {
     const buyCount = orderRows.filter((o) => o.side === 'BUY').length;
     const sellCount = orderRows.filter((o) => o.side === 'SELL').length;
 
+    const fx = await this.buildFxReport(portfolioInfo, valuation.totalValue);
+
     return {
       portfolioId,
+      baseCurrency: portfolioInfo.baseCurrency,
       initialCash: portfolioInfo.initialCash,
       currentValue: valuation.totalValue,
       returnPct: this.round(valuation.returnPct, 4),
@@ -69,6 +76,52 @@ export class PerformanceService {
       sellCount,
       dailyWinRate: this.round(this.dailyWinRate(navSeries), 2),
       snapshotCount: navSeries.length,
+      fx,
+    };
+  }
+
+  /**
+   * 펀딩 통화(예: KRW) 기준 환산·환차익. USD 계좌를 KRW 로 펀딩한 경우에만 산출.
+   * 총손익(펀딩 통화) = 주가손익 + 환차익 으로 분해한다.
+   */
+  private async buildFxReport(
+    portfolio: Portfolio,
+    currentValueBase: number,
+  ): Promise<FxReport | null> {
+    if (
+      !portfolio.fundedCurrency ||
+      !portfolio.fundedAmount ||
+      !portfolio.initialFxRate ||
+      portfolio.fundedCurrency === portfolio.baseCurrency
+    ) {
+      return null;
+    }
+
+    const initialRate = portfolio.initialFxRate; // funded per base (예: KRW/USD)
+    const currentRate = await this.fx.getRate(
+      portfolio.baseCurrency,
+      portfolio.fundedCurrency,
+    );
+    const initialBase = portfolio.initialCash; // 예: USD 초기 현금
+    const fundedAmount = portfolio.fundedAmount; // 예: 1억 KRW
+
+    const currentValueInFunded = currentValueBase * currentRate;
+    const returnPctInFunded =
+      ((currentValueInFunded - fundedAmount) / fundedAmount) * 100;
+    // 주가손익(펀딩 통화) = base 손익 × 초기환율
+    const stockPnl = (currentValueBase - initialBase) * initialRate;
+    // 환차익 = 현재 base 보유액 × 환율변동
+    const fxPnl = currentValueBase * (currentRate - initialRate);
+
+    return {
+      fundedCurrency: portfolio.fundedCurrency,
+      fundedAmount: this.round(fundedAmount, 4),
+      initialFxRate: this.round(initialRate, 6),
+      currentFxRate: this.round(currentRate, 6),
+      currentValueInFunded: this.round(currentValueInFunded, 4),
+      returnPctInFunded: this.round(returnPctInFunded, 4),
+      stockPnl: this.round(stockPnl, 4),
+      fxPnl: this.round(fxPnl, 4),
     };
   }
 

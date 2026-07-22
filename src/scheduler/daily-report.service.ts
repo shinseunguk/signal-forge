@@ -6,12 +6,19 @@ import { PerformanceService } from '../performance/performance.service';
 import { PortfolioService } from '../portfolio/portfolio.service';
 import { JournalEntry } from '../performance/performance.types';
 
-function krw(value: number): string {
-  return `${Math.round(value).toLocaleString('ko-KR')}원`;
+function money(value: number, currency: string): string {
+  const rounded =
+    currency === 'KRW' ? Math.round(value) : Math.round(value * 100) / 100;
+  const unit = currency === 'KRW' ? '원' : ` ${currency}`;
+  return `${rounded.toLocaleString('ko-KR')}${unit}`;
 }
 function signed(value: number, unit: string): string {
   const s = value >= 0 ? '+' : '';
   return `${s}${value.toLocaleString('ko-KR')}${unit}`;
+}
+function signedMoney(value: number, currency: string): string {
+  const s = value >= 0 ? '+' : '-';
+  return `${s}${money(Math.abs(value), currency)}`;
 }
 
 /**
@@ -50,19 +57,29 @@ export class DailyReportService {
     const journal = await this.performance.tradingJournal(portfolioId, at);
     const efficacy = await this.performance.signalEfficacyReport();
 
-    const profit = Math.round(report.currentValue - report.initialCash);
+    const cur = report.baseCurrency || 'KRW';
+    const profit = report.currentValue - report.initialCash;
     const dateStr = this.dateStr(at);
 
     const lines: string[] = [];
     lines.push(`📊 **[signal-forge] ${dateStr} 일일 리포트 — ${name}**`);
     lines.push(
-      `💰 총평가액: ${krw(report.currentValue)} (수익 ${signed(profit, '원')}, ${signed(report.returnPct, '%')})`,
+      `💰 총평가액: ${money(report.currentValue, cur)} (수익 ${signedMoney(profit, cur)}, ${signed(report.returnPct, '%')})`,
     );
+    if (report.fx) {
+      const f = report.fx;
+      lines.push(
+        `💱 ${f.fundedCurrency} 환산: ${money(f.currentValueInFunded, f.fundedCurrency)} (${signed(f.returnPctInFunded, '%')}) · 환율 ${f.initialFxRate}→${f.currentFxRate}`,
+      );
+      lines.push(
+        `   └ 주가손익 ${signedMoney(f.stockPnl, f.fundedCurrency)} + 환차익 ${signedMoney(f.fxPnl, f.fundedCurrency)}`,
+      );
+    }
     lines.push(
-      `📉 MDD ${report.maxDrawdownPct}% · 마찰비용 누적 ${krw(report.totalFriction)} · 주문 ${report.orderCount}건(매수 ${report.buyCount}/매도 ${report.sellCount})`,
+      `📉 MDD ${report.maxDrawdownPct}% · 마찰비용 누적 ${money(report.totalFriction, cur)} · 주문 ${report.orderCount}건(매수 ${report.buyCount}/매도 ${report.sellCount})`,
     );
     lines.push('');
-    lines.push(this.journalSection(journal));
+    lines.push(this.journalSection(journal, cur));
 
     const eff = this.efficacySection(efficacy.byCategory);
     if (eff) {
@@ -72,14 +89,14 @@ export class DailyReportService {
     return lines.join('\n');
   }
 
-  private journalSection(journal: JournalEntry[]): string {
+  private journalSection(journal: JournalEntry[], currency: string): string {
     if (journal.length === 0) {
       return '📝 오늘 매매: 없음';
     }
     const rows = journal.map((j) => {
       const kind = j.side === 'BUY' ? '매수' : '매도';
       const cost = j.fee + j.tax;
-      return `• ${kind} ${j.symbol} ${j.quantity}주 @${krw(j.fillPrice)} (비용 ${krw(cost)})`;
+      return `• ${kind} ${j.symbol} ${j.quantity}주 @${money(j.fillPrice, currency)} (비용 ${money(cost, currency)})`;
     });
     return [`📝 오늘 매매 (${journal.length}건)`, ...rows].join('\n');
   }

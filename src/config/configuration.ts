@@ -12,6 +12,10 @@ export default () => ({
     // 시세 제공자 선택: 'mock'(기본) | 'toss'(실 API, 스펙 확정 후)
     provider: process.env.MARKET_PROVIDER ?? 'mock',
   },
+  fx: {
+    // 환율 제공자: 'mock'(기본) | 'exchangerate'(실 API, 확정 후)
+    provider: process.env.FX_PROVIDER ?? 'mock',
+  },
   signals: {
     // LLM 태거 선택: 'mock'(기본) | 'claude'(실 API, 키·프롬프트 확정 후)
     tagger: process.env.SIGNAL_TAGGER ?? 'mock',

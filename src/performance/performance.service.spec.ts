@@ -1,22 +1,26 @@
 import { DatabaseService } from '../database/database.service';
 import { MarketService } from '../market/market.service';
 import { PortfolioService } from '../portfolio/portfolio.service';
+import { FxService } from '../fx/fx.service';
 import { PerformanceService } from './performance.service';
 
 describe('PerformanceService', () => {
   let db: { query: jest.Mock };
   let portfolio: { getById: jest.Mock; valuate: jest.Mock };
   let market: { getCandles: jest.Mock };
+  let fx: { getRate: jest.Mock };
   let service: PerformanceService;
 
   beforeEach(() => {
     db = { query: jest.fn() };
     portfolio = { getById: jest.fn(), valuate: jest.fn() };
     market = { getCandles: jest.fn() };
+    fx = { getRate: jest.fn().mockResolvedValue(1) };
     service = new PerformanceService(
       db as unknown as DatabaseService,
       portfolio as unknown as PortfolioService,
       market as unknown as MarketService,
+      fx as unknown as FxService,
     );
   });
 
@@ -55,6 +59,35 @@ describe('PerformanceService', () => {
       expect(report.sellCount).toBe(1);
       // 상승 구간: 100→110(+), 110→99(-), 99→105(+) → 2/3
       expect(report.dailyWinRate).toBeCloseTo(66.67, 1);
+    });
+
+    it('USD 계좌(KRW 펀딩)는 환차익을 분해한다', async () => {
+      // 1억 KRW @1350 → 74,074.07 USD 펀딩. 현재 75,000 USD, 현재환율 1400.
+      portfolio.getById.mockResolvedValue({
+        baseCurrency: 'USD',
+        initialCash: 74_074.074,
+        fundedCurrency: 'KRW',
+        fundedAmount: 100_000_000,
+        initialFxRate: 1350,
+      });
+      portfolio.valuate.mockResolvedValue({
+        totalValue: 75_000,
+        cashBalance: 0,
+        positionsValue: 75_000,
+        returnPct: 1.25,
+      });
+      fx.getRate.mockResolvedValue(1400);
+      db.query
+        .mockResolvedValueOnce({ rows: [] }) // snapshots
+        .mockResolvedValueOnce({ rows: [] }); // orders
+
+      const report = await service.portfolioReport(1);
+      expect(report.fx).not.toBeNull();
+      expect(report.fx!.currentValueInFunded).toBeCloseTo(105_000_000, 0); // 75000×1400
+      expect(report.fx!.returnPctInFunded).toBeCloseTo(5, 2); // (1.05억-1억)/1억
+      expect(report.fx!.fxPnl).toBeCloseTo(3_750_000, 0); // 75000×(1400-1350)
+      // 주가손익 + 환차익 = 총 KRW 손익(5,000,000)
+      expect(report.fx!.stockPnl + report.fx!.fxPnl).toBeCloseTo(5_000_000, 0);
     });
   });
 
