@@ -68,8 +68,8 @@ describe('RiskGateService', () => {
     calendarReturns(false);
     const d = await service.checkBuy({
       portfolioId: 1,
-      symbol: '005930',
-      market: 'KRX',
+      symbol: 'AAPL',
+      market: 'US',
       orderAmount: 1_000_000,
       at: weekday,
     });
@@ -81,8 +81,8 @@ describe('RiskGateService', () => {
     calendarReturns(null);
     const d = await service.checkBuy({
       portfolioId: 1,
-      symbol: '005930',
-      market: 'KRX',
+      symbol: 'AAPL',
+      market: 'US',
       orderAmount: 1_000_000,
       at: weekday,
     });
@@ -94,8 +94,8 @@ describe('RiskGateService', () => {
     const sunday = new Date('2026-07-19T02:00:00Z');
     const d = await service.checkBuy({
       portfolioId: 1,
-      symbol: '005930',
-      market: 'KRX',
+      symbol: 'AAPL',
+      market: 'US',
       orderAmount: 1_000_000,
       at: sunday,
     });
@@ -128,8 +128,8 @@ describe('RiskGateService', () => {
     });
     const d = await service.checkBuy({
       portfolioId: 1,
-      symbol: '005930',
-      market: 'KRX',
+      symbol: 'AAPL',
+      market: 'US',
       orderAmount: 1_000_000,
       at: weekday,
     });
@@ -142,8 +142,8 @@ describe('RiskGateService', () => {
     // total 1억, 신규 매수 2,500만 → 25% > 20%
     const d = await service.checkBuy({
       portfolioId: 1,
-      symbol: '005930',
-      market: 'KRX',
+      symbol: 'AAPL',
+      market: 'US',
       orderAmount: 25_000_000,
       at: weekday,
     });
@@ -155,8 +155,8 @@ describe('RiskGateService', () => {
     calendarReturns(null);
     const d = await service.checkBuy({
       portfolioId: 1,
-      symbol: '005930',
-      market: 'KRX',
+      symbol: 'AAPL',
+      market: 'US',
       orderAmount: 5_000_000, // 5%
       at: weekday,
     });

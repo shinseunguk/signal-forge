@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IngestionService } from './ingestion/ingestion.service';
 import { DOCUMENT_SOURCES } from './ingestion/document-source.interface';
-import { MockDartSource } from './ingestion/mock-dart.source';
+import { MockSecSource } from './ingestion/mock-sec.source';
 import { MockNewsSource } from './ingestion/mock-news.source';
 import { TaggingService } from './tagging/tagging.service';
 import { LLM_TAGGER } from './tagging/llm-tagger.interface';
@@ -16,12 +16,12 @@ import { SignalsService } from './signals.service';
  */
 @Module({
   providers: [
-    MockDartSource,
+    MockSecSource,
     MockNewsSource,
     {
       provide: DOCUMENT_SOURCES,
-      inject: [MockDartSource, MockNewsSource],
-      useFactory: (dart: MockDartSource, news: MockNewsSource) => [dart, news],
+      inject: [MockSecSource, MockNewsSource],
+      useFactory: (sec: MockSecSource, news: MockNewsSource) => [sec, news],
     },
     IngestionService,
 

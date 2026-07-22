@@ -98,8 +98,8 @@ describe('PerformanceService', () => {
         rows: [
           {
             id: '1',
-            symbol: '005930',
-            market: 'KRX',
+            symbol: 'AAPL',
+            market: 'US',
             published_at: new Date('2026-06-01T00:00:00Z'),
           },
         ],
@@ -130,7 +130,7 @@ describe('PerformanceService', () => {
           {
             id: '1',
             symbol: 'X',
-            market: 'KRX',
+            market: 'US',
             published_at: new Date('2026-06-01T00:00:00Z'),
           },
         ],

@@ -35,8 +35,8 @@ describe('PaperExecutionService', () => {
 
   function mockQuote(price: number) {
     market.getPrice.mockResolvedValue({
-      symbol: '005930',
-      market: 'KRX',
+      symbol: 'AAPL',
+      market: 'US',
       price,
       capturedAt: new Date(),
     });
@@ -56,8 +56,8 @@ describe('PaperExecutionService', () => {
 
     const order = await service.paperBuy({
       portfolioId: 1,
-      symbol: '005930',
-      market: 'KRX',
+      symbol: 'AAPL',
+      market: 'US',
       quantity: 10,
       idempotencyKey: 'buy-1',
       decidedAt: new Date(),
@@ -65,7 +65,7 @@ describe('PaperExecutionService', () => {
 
     const fill = 70_000 * (1 + SLIPPAGE); // 70,070
     const gross = 10 * fill; // 700,700
-    const fee = gross * FEES.KRX.commission; // 105.105
+    const fee = gross * FEES.US.commission; // 105.105
     // update portfolio 호출의 net_cash_flow 인자 검증
     const updateCall = client.query.mock.calls[1];
     expect(updateCall[0]).toContain('UPDATE portfolio');
@@ -83,8 +83,8 @@ describe('PaperExecutionService', () => {
     await expect(
       service.paperBuy({
         portfolioId: 1,
-        symbol: '005930',
-        market: 'KRX',
+        symbol: 'AAPL',
+        market: 'US',
         quantity: 10,
         idempotencyKey: 'buy-2',
         decidedAt: new Date(),
@@ -96,8 +96,8 @@ describe('PaperExecutionService', () => {
     await expect(
       service.paperBuy({
         portfolioId: 1,
-        symbol: '005930',
-        market: 'KRX',
+        symbol: 'AAPL',
+        market: 'US',
         quantity: 10,
         orderAmount: 1_000_000,
         idempotencyKey: 'buy-3',
@@ -106,7 +106,7 @@ describe('PaperExecutionService', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it('paperBuy: orderAmount 기반 수량은 수수료 포함 예산 내로 산정(KRX 정수)', async () => {
+  it('paperBuy: orderAmount 기반 수량은 수수료 포함 예산 내로 산정(US 소수점)', async () => {
     mockQuote(70_000);
     const client = makeFakeClient([
       { rows: [{ cash_balance: '100000000.0000' }] },
@@ -119,16 +119,17 @@ describe('PaperExecutionService', () => {
 
     await service.paperBuy({
       portfolioId: 1,
-      symbol: '005930',
-      market: 'KRX',
+      symbol: 'AAPL',
+      market: 'US',
       orderAmount: 1_000_000,
       idempotencyKey: 'buy-4',
       decidedAt: new Date(),
     });
 
     const fill = 70_000 * (1 + SLIPPAGE);
-    const unitCost = fill * (1 + FEES.KRX.commission);
-    const expectedQty = Math.floor(1_000_000 / unitCost);
+    const unitCost = fill * (1 + FEES.US.commission);
+    // 미국 주식은 소수점 체결 → round6.
+    const expectedQty = Math.round((1_000_000 / unitCost) * 1e6) / 1e6;
     const insertPos = client.query.mock.calls[3];
     expect(insertPos[0]).toContain('INSERT INTO position');
     expect(insertPos[1][3]).toBe(expectedQty);
@@ -146,8 +147,8 @@ describe('PaperExecutionService', () => {
 
     await service.paperSell({
       portfolioId: 1,
-      symbol: '005930',
-      market: 'KRX',
+      symbol: 'AAPL',
+      market: 'US',
       quantity: 5,
       idempotencyKey: 'sell-1',
       decidedAt: new Date(),
@@ -155,8 +156,8 @@ describe('PaperExecutionService', () => {
 
     const fill = 80_000 * (1 - SLIPPAGE); // 79,920
     const gross = 5 * fill;
-    const fee = gross * FEES.KRX.commission;
-    const tax = gross * SELL_TAX.KRX;
+    const fee = gross * FEES.US.commission;
+    const tax = gross * SELL_TAX.US;
     const updateCash = client.query.mock.calls[1];
     expect(updateCash[0]).toContain('UPDATE portfolio');
     expect(updateCash[1][0]).toBeCloseTo(gross - fee - tax, 4);
@@ -170,8 +171,8 @@ describe('PaperExecutionService', () => {
     await expect(
       service.paperSell({
         portfolioId: 1,
-        symbol: '005930',
-        market: 'KRX',
+        symbol: 'AAPL',
+        market: 'US',
         quantity: 5,
         idempotencyKey: 'sell-2',
         decidedAt: new Date(),
@@ -187,8 +188,8 @@ describe('PaperExecutionService', () => {
 
     const order = await service.paperBuy({
       portfolioId: 1,
-      symbol: '005930',
-      market: 'KRX',
+      symbol: 'AAPL',
+      market: 'US',
       quantity: 10,
       idempotencyKey: 'dup',
       decidedAt: new Date(),
@@ -204,8 +205,8 @@ function makeOrderRow(overrides: Record<string, unknown> = {}) {
   return {
     id: '1',
     portfolio_id: '1',
-    symbol: '005930',
-    market: 'KRX',
+    symbol: 'AAPL',
+    market: 'US',
     side: 'BUY',
     order_type: 'MARKET',
     quantity: '10.000000',

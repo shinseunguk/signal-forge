@@ -31,7 +31,7 @@ describe('StrategyRunnerService.run', () => {
 
   it('BUY 액션이 게이트 통과 시 paperBuy 를 멱등 키로 실행', async () => {
     const actions: StrategyAction[] = [
-      { action: 'BUY', symbol: '005930', market: 'KRX', orderAmount: 1_000_000, reason: '적립' },
+      { action: 'BUY', symbol: 'AAPL', market: 'US', orderAmount: 1_000_000, reason: '적립' },
     ];
     strategy.evaluate.mockResolvedValue(actions);
     risk.checkBuy.mockResolvedValue({ allowed: true });
@@ -40,13 +40,13 @@ describe('StrategyRunnerService.run', () => {
     expect(outcomes[0].status).toBe('executed');
     expect(outcomes[0].orderId).toBe(100);
     expect(execution.paperBuy).toHaveBeenCalledWith(
-      expect.objectContaining({ idempotencyKey: 'buy-005930-20260722' }),
+      expect.objectContaining({ idempotencyKey: 'buy-AAPL-20260722' }),
     );
   });
 
   it('BUY 액션이 게이트 거부 시 실행하지 않는다', async () => {
     strategy.evaluate.mockResolvedValue([
-      { action: 'BUY', symbol: '005930', market: 'KRX', orderAmount: 1_000_000, reason: '적립' },
+      { action: 'BUY', symbol: 'AAPL', market: 'US', orderAmount: 1_000_000, reason: '적립' },
     ]);
     risk.checkBuy.mockResolvedValue({
       allowed: false,
@@ -61,12 +61,12 @@ describe('StrategyRunnerService.run', () => {
 
   it('SELL 액션은 개장일에 paperSell 실행', async () => {
     strategy.evaluate.mockResolvedValue([
-      { action: 'SELL', symbol: '005930', market: 'KRX', quantity: 10, reason: '악재 청산', signalId: 5 },
+      { action: 'SELL', symbol: 'AAPL', market: 'US', quantity: 10, reason: '악재 청산', signalId: 5 },
     ]);
     const outcomes = await runner.run(1, at);
     expect(outcomes[0].status).toBe('executed');
     expect(execution.paperSell).toHaveBeenCalledWith(
-      expect.objectContaining({ quantity: 10, idempotencyKey: 'sell-005930-20260722' }),
+      expect.objectContaining({ quantity: 10, idempotencyKey: 'sell-AAPL-20260722' }),
     );
   });
 
@@ -86,7 +86,7 @@ describe('StrategyRunnerService.run', () => {
 
   it('HOLD 액션은 건너뛴다', async () => {
     strategy.evaluate.mockResolvedValue([
-      { action: 'HOLD', symbol: '005930', market: 'KRX', reason: '악재 필터' },
+      { action: 'HOLD', symbol: 'AAPL', market: 'US', reason: '악재 필터' },
     ]);
     const outcomes = await runner.run(1, at);
     expect(outcomes[0].status).toBe('skipped');

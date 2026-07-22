@@ -24,16 +24,11 @@ const WINDOWS: Record<Market, SessionWindow> = {
     regular: [H(9, 30), H(16)], // 09:30–16:00 (본장)
     after: [H(16), H(20)], // 16:00–20:00
   },
-  KRX: {
-    tz: 'Asia/Seoul',
-    regular: [H(9), H(15, 30)], // 09:00–15:30
-  },
 };
 
 /** 각 시장에서 매매를 허용할 세션(기본 본장만). 필요 시 env 로 확장. */
 export const ALLOWED_SESSIONS: Record<Market, MarketSession[]> = {
   US: parseSessions(process.env.TRADE_SESSIONS_US) ?? ['REGULAR'],
-  KRX: parseSessions(process.env.TRADE_SESSIONS_KRX) ?? ['REGULAR'],
 };
 
 function parseSessions(raw?: string): MarketSession[] | null {

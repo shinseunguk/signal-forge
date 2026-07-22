@@ -16,8 +16,8 @@ interface FinnhubHolidayResponse {
   data?: FinnhubHoliday[];
 }
 
-/** Finnhub 거래소 코드 매핑. 실 API 연동은 US 만 지원, 그 외는 평일 규칙 fallback. */
-const EXCHANGE_CODE: Partial<Record<Market, string>> = {
+/** Finnhub 거래소 코드 매핑. 미국 전용 시스템이므로 US 만 지원한다. */
+const EXCHANGE_CODE: Record<Market, string> = {
   US: 'US',
 };
 
@@ -26,7 +26,6 @@ const REQUEST_TIMEOUT_MS = 12_000;
 /**
  * Finnhub 기반 실 캘린더 제공자 (읽기 전용).
  * /stock/market-holiday 로 공휴일을 받아 완전 휴장일을 계산한다.
- * US 외 시장은 평일=개장 규칙으로 대체한다.
  */
 @Injectable()
 export class FinnhubCalendarProvider implements CalendarProvider {
@@ -46,11 +45,6 @@ export class FinnhubCalendarProvider implements CalendarProvider {
     to: Date,
   ): Promise<MarketDay[]> {
     const exchange = EXCHANGE_CODE[market];
-    if (!exchange) {
-      // 실 API 미지원 시장 → 평일 규칙으로 대체.
-      return this.weekdaySessions(market, from, to);
-    }
-
     const closedDates = await this.fetchFullCloseDates(exchange);
     return eachDay(from, to).map((date) => {
       const sessionDate = toDateString(date);
@@ -97,13 +91,5 @@ export class FinnhubCalendarProvider implements CalendarProvider {
     } finally {
       clearTimeout(timer);
     }
-  }
-
-  private weekdaySessions(market: Market, from: Date, to: Date): MarketDay[] {
-    return eachDay(from, to).map((date) => ({
-      market,
-      sessionDate: toDateString(date),
-      isOpen: !isWeekend(date),
-    }));
   }
 }
