@@ -3,11 +3,11 @@ services:
     image: pgvector/pgvector:pg16
     environment:
       POSTGRES_USER: sf
-      POSTGRES_PASSWORD: sf
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD 를 .env 에 설정하세요}
       POSTGRES_DB: signal_forge
     ports:
-      # 로컬에 이미 5432 를 쓰는 PostgreSQL 이 있어 호스트 포트는 5433 으로 노출.
-      - "5433:5432"
+      # 로컬에 이미 5432 를 쓰는 PostgreSQL 이 있어 호스트 포트는 15432 로 노출.
+      - "15432:5432"
     volumes:
       - sf_pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -23,7 +23,7 @@ services:
         condition: service_healthy
     environment:
       PORT: 3000
-      DATABASE_URL: postgres://sf:sf@db:5432/signal_forge
+      DATABASE_URL: postgres://sf:${DB_PASSWORD:?DB_PASSWORD 를 .env 에 설정하세요}@db:5432/signal_forge
       PORTFOLIO_INITIAL_CASH: 100000000
       PORTFOLIO_NAME: signal-forge-main
       DAILY_LOSS_LIMIT_PCT: 3
