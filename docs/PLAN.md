@@ -56,6 +56,18 @@ LLM이 뉴스·공시를 구조화 시그널로 태깅하고, 그 시그널의 *
 | 설정 | `@nestjs/config` | 환경변수 |
 | 검증 | `class-validator`, `class-transformer` | DTO |
 | 로깅 | NestJS Logger + Slack Webhook | 알림 |
+| 컨테이너 | Docker / Docker Compose | **서비스 구동은 Docker로 한다** (아래 §실행 환경 참고) |
+
+### 실행 환경 (Docker)
+
+서비스(앱·DB)는 **Docker로 구동**한다. 로컬 개발·운영 모두 `docker compose`를 기준으로 한다.
+
+- **`docker-compose.yml`** 구성:
+  - `app`: NestJS 애플리케이션 컨테이너 (멀티스테이지 `Dockerfile`로 빌드).
+  - `db`: PostgreSQL 컨테이너. 이미지는 **`pgvector/pgvector:pg16`**을 사용해 `vector` 확장을 기본 제공한다(임베딩 검색 활성화). 데이터는 named volume으로 영속화.
+- 환경변수는 `.env`(§8)로 주입. 앱 컨테이너의 `DATABASE_URL` 호스트는 컴포즈 서비스명(`db`)을 사용한다. 예: `postgres://sf:sf@db:5432/signal_forge`.
+- 마이그레이션/시드는 앱 컨테이너에서 npm 스크립트로 실행한다. 예: `docker compose run --rm app npm run migrate` / `... npm run seed`.
+- 로컬에 Postgres가 이미 있어 Docker 없이 개발할 경우, pgvector 미설치 환경일 수 있으므로 마이그레이션은 `vector` 확장을 **가용할 때만** 임베딩 컬럼을 생성하도록 방어적으로 작성한다(기획서 §4의 임베딩은 선택 항목).
 
 ---
 
@@ -429,7 +441,7 @@ MAX_POSITION_WEIGHT_PCT=20
 
 > 위에서 아래로 순서대로. 각 Phase 끝에 동작 확인 후 다음으로.
 
-- [ ] **Phase 1 — 기반**: NestJS 프로젝트 초기화, `ConfigModule`, DB 연결, `migrations/001_init.sql`(§4) 실행, 시드 스크립트로 1억원 포트폴리오 1개 생성.
+- [ ] **Phase 1 — 기반**: NestJS 프로젝트 초기화, `ConfigModule`, DB 연결, `migrations/001_init.sql`(§4) 실행, 시드 스크립트로 1억원 포트폴리오 1개 생성. **Docker 구성(`Dockerfile`, `docker-compose.yml` — app + `pgvector/pgvector:pg16` db) 포함.**
 - [ ] **Phase 2 — 시세**: `MarketModule` / `TossQuoteService`. `getPrice`, `getCandles`. 조회 시 `price_snapshot` 기록. **주문 코드 없음 확인.**
 - [ ] **Phase 3 — 포트폴리오**: `PortfolioService.valuate` / `snapshot` / `getPositions`.
 - [ ] **Phase 4 — 페이퍼 실행**: `PaperExecutionService.paperBuy` / `paperSell`. 마찰비용(§6.2) + 트랜잭션 + 멱등성. 단위 테스트로 현금/포지션 정합성 검증.
