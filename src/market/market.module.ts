@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MarketService } from './market.service';
+import { MarketSessionService } from './market-session';
 import { QUOTE_PROVIDER } from './quote-provider.interface';
 import { MockQuoteProvider } from './providers/mock-quote.provider';
 import { TossQuoteProvider } from './providers/toss-quote.provider';
@@ -26,7 +27,8 @@ import { TossQuoteProvider } from './providers/toss-quote.provider';
       },
     },
     MarketService,
+    MarketSessionService,
   ],
-  exports: [MarketService],
+  exports: [MarketService, MarketSessionService],
 })
 export class MarketModule {}

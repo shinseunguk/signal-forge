@@ -3,6 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { DatabaseService } from '../database/database.service';
 import { MarketService } from '../market/market.service';
 import { Market } from '../market/market.types';
+import {
+  ALLOWED_SESSIONS,
+  MarketSessionService,
+} from '../market/market-session';
 import { PortfolioService } from '../portfolio/portfolio.service';
 import { ALLOWED, CheckBuyInput, RiskDecision } from './risk.types';
 
@@ -24,16 +28,15 @@ export class RiskGateService {
     private readonly db: DatabaseService,
     private readonly portfolio: PortfolioService,
     private readonly market: MarketService,
+    private readonly session: MarketSessionService,
     private readonly config: ConfigService,
   ) {}
 
   async checkBuy(input: CheckBuyInput): Promise<RiskDecision> {
     const at = input.at ?? new Date();
 
-    const open = await this.isMarketOpen(input.market, at);
-    if (!open) {
-      return this.deny('market_closed', `${input.market} 휴장일에는 매수하지 않습니다.`);
-    }
+    const tradeable = await this.isTradeable(input.market, at);
+    if (!tradeable.allowed) return tradeable;
 
     const lossGate = await this.checkDailyLoss(input.portfolioId, at);
     if (!lossGate.allowed) return lossGate;
@@ -41,6 +44,24 @@ export class RiskGateService {
     const weightGate = await this.checkPositionWeight(input);
     if (!weightGate.allowed) return weightGate;
 
+    return ALLOWED;
+  }
+
+  /**
+   * 매매 가능 여부 = 개장일(캘린더) AND 허용 세션(기본 본장). 매수·매도 공통 게이트.
+   */
+  async isTradeable(market: Market, at: Date): Promise<RiskDecision> {
+    const open = await this.isMarketOpen(market, at);
+    if (!open) {
+      return this.deny('market_closed', `${market} 휴장일에는 매매하지 않습니다.`);
+    }
+    const current = this.session.getSession(market, at);
+    if (!ALLOWED_SESSIONS[market].includes(current)) {
+      return this.deny(
+        'market_session',
+        `${market} ${current} 세션에는 매매하지 않습니다(허용: ${ALLOWED_SESSIONS[market].join(',')}).`,
+      );
+    }
     return ALLOWED;
   }
 

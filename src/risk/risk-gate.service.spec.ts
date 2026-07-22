@@ -1,6 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { DatabaseService } from '../database/database.service';
 import { MarketService } from '../market/market.service';
+import { MarketSessionService } from '../market/market-session';
 import { PortfolioService } from '../portfolio/portfolio.service';
 import { RiskGateService } from './risk-gate.service';
 
@@ -8,6 +9,7 @@ describe('RiskGateService', () => {
   let db: { query: jest.Mock };
   let portfolio: { getById: jest.Mock; valuate: jest.Mock; getPositions: jest.Mock };
   let market: { getPrice: jest.Mock };
+  let session: { getSession: jest.Mock };
   let config: { get: jest.Mock };
   let service: RiskGateService;
 
@@ -32,6 +34,7 @@ describe('RiskGateService', () => {
       getPositions: jest.fn().mockResolvedValue([]),
     };
     market = { getPrice: jest.fn() };
+    session = { getSession: jest.fn().mockReturnValue('REGULAR') };
     config = {
       get: jest.fn((key: string) =>
         key === 'risk.dailyLossLimitPct' ? 3 : 20,
@@ -41,6 +44,7 @@ describe('RiskGateService', () => {
       db as unknown as DatabaseService,
       portfolio as unknown as PortfolioService,
       market as unknown as MarketService,
+      session as unknown as MarketSessionService,
       config as unknown as ConfigService,
     );
   });
@@ -97,6 +101,20 @@ describe('RiskGateService', () => {
     });
     expect(d.allowed).toBe(false);
     expect(d.gate).toBe('market_closed');
+  });
+
+  it('개장일이라도 비허용 세션(프리마켓)이면 거부한다', async () => {
+    calendarReturns(null);
+    session.getSession.mockReturnValue('PRE');
+    const d = await service.checkBuy({
+      portfolioId: 1,
+      symbol: 'AAPL',
+      market: 'US',
+      orderAmount: 1_000,
+      at: weekday,
+    });
+    expect(d.allowed).toBe(false);
+    expect(d.gate).toBe('market_session');
   });
 
   it('당일 손실이 한도(시드 3%)에 도달하면 거부한다', async () => {
