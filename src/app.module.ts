@@ -8,6 +8,7 @@ import { DatabaseModule } from './database/database.module';
 import { MarketModule } from './market/market.module';
 import { PortfolioModule } from './portfolio/portfolio.module';
 import { ExecutionModule } from './execution/execution.module';
+import { RiskModule } from './risk/risk.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ExecutionModule } from './execution/execution.module';
     MarketModule,
     PortfolioModule,
     ExecutionModule,
+    RiskModule,
   ],
   controllers: [AppController],
   providers: [AppService],
