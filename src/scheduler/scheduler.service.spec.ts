@@ -4,6 +4,7 @@ import { PortfolioService } from '../portfolio/portfolio.service';
 import { SignalsService } from '../signals/signals.service';
 import { StrategyRunnerService } from '../strategy/strategy-runner.service';
 import { PerformanceService } from '../performance/performance.service';
+import { CalendarSyncService } from '../calendar/calendar-sync.service';
 import { SchedulerService } from './scheduler.service';
 import { DailyReportService } from './daily-report.service';
 import { Notifier } from '../notification/notifier.interface';
@@ -14,6 +15,7 @@ describe('SchedulerService', () => {
   let portfolio: { snapshot: jest.Mock };
   let performance: { evaluateSignals: jest.Mock };
   let dailyReport: { sendDailyDigest: jest.Mock };
+  let calendarSync: { sync: jest.Mock };
   let db: { query: jest.Mock };
   let notifier: { notifyFailure: jest.Mock; send: jest.Mock; channel: string };
   let config: { get: jest.Mock };
@@ -25,6 +27,7 @@ describe('SchedulerService', () => {
     portfolio = { snapshot: jest.fn().mockResolvedValue(undefined) };
     performance = { evaluateSignals: jest.fn().mockResolvedValue(undefined) };
     dailyReport = { sendDailyDigest: jest.fn().mockResolvedValue(undefined) };
+    calendarSync = { sync: jest.fn().mockResolvedValue(undefined) };
     db = {
       query: jest.fn().mockResolvedValue({ rows: [{ id: '1' }, { id: '2' }] }),
     };
@@ -40,6 +43,7 @@ describe('SchedulerService', () => {
       portfolio as unknown as PortfolioService,
       performance as unknown as PerformanceService,
       dailyReport as unknown as DailyReportService,
+      calendarSync as unknown as CalendarSyncService,
       db as unknown as DatabaseService,
       notifier as unknown as Notifier,
       config as unknown as ConfigService,
@@ -81,5 +85,10 @@ describe('SchedulerService', () => {
     config.get.mockReturnValue(false);
     await service.collectSignals();
     expect(signals.ingestAndTag).not.toHaveBeenCalled();
+  });
+
+  it('syncCalendar 는 캘린더 동기화를 호출한다', async () => {
+    await service.syncCalendar();
+    expect(calendarSync.sync).toHaveBeenCalledTimes(1);
   });
 });
